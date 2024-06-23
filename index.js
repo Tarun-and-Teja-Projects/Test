@@ -8,38 +8,41 @@ const client = new MongoClient(uri);
 
 const PORT = 3000;
 
+// Middleware to parse JSON bodies
+app.use(express.json());
+
 async function connectToMongoDB() {
     try {
         await client.connect();
         console.log("Connected to MongoDB");
-        const db = client.db("admin");
     } catch (err) {
         console.error("Failed to connect to MongoDB", err);
     }
 }
 
-
-
-
 connectToMongoDB().catch(console.error);
 
-app.get('/',(req,res)=>{
+app.get('/', (req, res) => {
     res.json({
-        status:200,
-        message:"Working Server"
-    })
+        status: 200,
+        message: "Working Server"
+    });
 });
 
 app.post("/api/data", async (req, res) => {
     try {
-        const db = client.db("admin");
+        const db = client.db("mydatabase"); // Use a different database than admin
         const collection = db.collection("Contact");
 
+        // Destructure properties from req.body
         const { name, email, message } = req.body;
+
+        // Validate the request body
         if (!name || !email || !message) {
             return res.status(400).send("Missing required fields: name, email, and message");
         }
 
+        // Create the data object to insert
         const data = {
             name,
             email,
@@ -47,6 +50,7 @@ app.post("/api/data", async (req, res) => {
             createdAt: new Date()
         };
 
+        // Insert the data into the collection
         const result = await collection.insertOne(data);
         res.status(201).send(result);
     } catch (err) {
@@ -54,6 +58,7 @@ app.post("/api/data", async (req, res) => {
         res.status(500).send("Failed to insert data");
     }
 });
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

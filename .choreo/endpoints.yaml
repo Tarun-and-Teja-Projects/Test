@@ -28,4 +28,3 @@ run:
 endpoints:
   - path: /api/data
     method: POST
-x
