@@ -28,8 +28,20 @@ app.get('/',(req,res)=>{
         status:200,
         message:"Working Server"
     })
-})
+});
 
+app.post("api/data", async (req, res) => {
+    try {
+        const db = client.db("admin");
+        const collection = db.collection("Conatct");
+
+        const result = await collection.insertOne(req.body);
+        res.status(201).send(result);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Failed to insert data");
+    }
+});
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
