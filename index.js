@@ -30,12 +30,24 @@ app.get('/',(req,res)=>{
     })
 });
 
-app.post("api/data", async (req, res) => {
+app.post("/api/data", async (req, res) => {
     try {
         const db = client.db("admin");
-        const collection = db.collection("Conatct");
+        const collection = db.collection("Contact");
 
-        const result = await collection.insertOne(req.body);
+        const { name, email, message } = req.body;
+        if (!name || !email || !message) {
+            return res.status(400).send("Missing required fields: name, email, and message");
+        }
+
+        const data = {
+            name,
+            email,
+            message,
+            createdAt: new Date()
+        };
+
+        const result = await collection.insertOne(data);
         res.status(201).send(result);
     } catch (err) {
         console.error(err);
