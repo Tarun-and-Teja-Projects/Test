@@ -1,5 +1,5 @@
 component:
-  name: Test
+  name: express-mongo-service
   version: 1.0.0
   type: service
 
@@ -22,4 +22,9 @@ build:
   version: 14
 
 run:
-  command: nodemon index.js
+  path: src/index.js
+  command: node src/index.js
+
+endpoints:
+  - path: /api/data
+    method: POST
