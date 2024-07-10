@@ -1,6 +1,5 @@
 const express = require("express");
 const { MongoClient, ObjectId } = require("mongodb");
-const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const cors = require('cors');
@@ -124,11 +123,10 @@ app.post('/api/register', async (req, res) => {
             return res.status(400).send("Username and password are required");
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
 
         const newUser = {
             username,
-            password: hashedPassword,
+            password: password,
             roles: roles || []
         };
 
@@ -152,28 +150,25 @@ app.post('/api/login', async (req, res) => {
         if (!username || !password) {
             return res.status(400).send("Username and password are required");
         }
+
         const user = await usersCollection.findOne({ username });
 
         if (!user) {
             return res.status(401).send("Invalid username or password");
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (isMatch) {
-            const accessToken = generateAccessToken({ username: user.username, roles: user.roles });
-            res.status(200).json({ accessToken });
-        } else {
-            res.json({
-                status:401,
-                message:"Invalid username or password   "
-            })
+        if (password !== user.password) {
+            return res.status(401).send("Invalid username or password");
         }
+
+        const accessToken = generateAccessToken({ username: user.username, roles: user.roles });
+        res.status(200).json({ accessToken });
     } catch (err) {
         console.error(err);
         res.status(500).send("Failed to login");
     }
 });
+
 
 app.post('/api/data', authenticateToken, authorizePermission('write'), async (req, res) => {
     try {
