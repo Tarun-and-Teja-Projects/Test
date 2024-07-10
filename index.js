@@ -152,7 +152,6 @@ app.post('/api/login', async (req, res) => {
         if (!username || !password) {
             return res.status(400).send("Username and password are required");
         }
-
         const user = await usersCollection.findOne({ username });
 
         if (!user) {
