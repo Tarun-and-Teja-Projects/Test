@@ -162,7 +162,10 @@ app.post('/api/login', async (req, res) => {
         }
 
         const accessToken = generateAccessToken({ username: user.username, roles: user.roles });
-        res.status(200).json({ accessToken });
+        res,json({
+            status:200,
+            data:accessToken
+        })
     } catch (err) {
         console.error(err);
         res.status(500).send("Failed to login");
@@ -194,6 +197,44 @@ app.post('/api/data', authenticateToken, authorizePermission('write'), async (re
         res.status(500).send("Failed to insert data");
     }
 });
+
+app.post('/api/addMission',async(req,res)=>{
+    try {
+        const db = client.db("mydatabase");
+        const collection = db.collection("mission");
+
+        const { title, description, Image } = req.body;
+
+        if (!title || !description) {
+            return res.status(400).send("Missing required fields: title, description, and Image");
+        }
+        const data = {
+            title,
+            description,
+            Image,
+            createdAt: new Date()
+        };
+
+        const result = await collection.insertOne(data);
+        res.status(201).json(result);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Failed to insert data");
+    }
+});
+
+app.get('/api/getMission', async (req, res) => {
+    try {
+      const db = client.db("mydatabase");
+      const collection = db.collection("mission");
+  
+      const missions = await collection.find({}).toArray();
+      res.json(missions);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Failed to fetch missions");
+    }
+  });
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
