@@ -162,7 +162,7 @@ app.post('/api/login', async (req, res) => {
         }
 
         const accessToken = generateAccessToken({ username: user.username, roles: user.roles });
-        res,json({
+        res.json({
             status:200,
             data:accessToken
         })
