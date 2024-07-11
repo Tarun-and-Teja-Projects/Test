@@ -148,7 +148,10 @@ app.post('/api/login', async (req, res) => {
         const { username, password } = req.body;
 
         if (!username || !password) {
-            return res.status(400).send("Username and password are required");
+           res.json({
+            status:400,
+            message:"Username and password is required"
+           })
         }
 
         const user = await usersCollection.findOne({ username });
@@ -168,7 +171,10 @@ app.post('/api/login', async (req, res) => {
         })
     } catch (err) {
         console.error(err);
-        res.status(500).send("Failed to login");
+       res.json({
+        status:401,
+        message:"Invalid username or password"
+       })
     }
 });
 
