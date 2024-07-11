@@ -170,7 +170,6 @@ app.post('/api/login', async (req, res) => {
             data:accessToken
         })
     } catch (err) {
-        console.error(err);
        res.json({
         status:401,
         message:"Invalid username or password"
