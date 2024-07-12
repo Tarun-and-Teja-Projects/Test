@@ -148,7 +148,7 @@ app.post('/api/login', async (req, res) => {
         const { username, password } = req.body;
 
         if (!username || !password) {
-           res.json({
+            return res.json({
             status:400,
             message:"Username and password is required"
            })
@@ -157,11 +157,16 @@ app.post('/api/login', async (req, res) => {
         const user = await usersCollection.findOne({ username });
 
         if (!user) {
-            return res.status(401).send("Invalid username or password");
-        }
+           return res.json({
+                status:401,
+                message:'Invalid username or password'
+            })        }
 
         if (password !== user.password) {
-            return res.status(401).send("Invalid username or password");
+            return  res.json({
+                status:401,
+                message:'Invalid username or password'
+            })
         }
 
         const accessToken = generateAccessToken({ username: user.username, roles: user.roles });
@@ -170,7 +175,7 @@ app.post('/api/login', async (req, res) => {
             data:accessToken
         })
     } catch (err) {
-       res.json({
+        return  res.json({
         status:401,
         message:"Invalid username or password"
        })
@@ -230,16 +235,39 @@ app.post('/api/addMission',async(req,res)=>{
 
 app.get('/api/getMission', async (req, res) => {
     try {
-      const db = client.db("mydatabase");
-      const collection = db.collection("mission");
-  
-      const missions = await collection.find({}).toArray();
-      res.json(missions);
+        const db = client.db("mydatabase");
+        const collection = db.collection("mission");
+
+        // Get query parameters for pagination
+        const pageNumber = parseInt(req.query.pageNumber) || 1; // Default to 1 if not provided
+        const pageSize = parseInt(req.query.pageSize) || 5; // Default to 10 if not provided
+
+        // Calculate total count of documents
+        const totalCount = await collection.countDocuments();
+        // Calculate total pages
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        // Fetch the documents for the requested page
+        const data = await collection.find({})
+            .skip((pageNumber - 1) * pageSize)
+            .limit(pageSize)
+            .toArray();
+
+        // Return the paginated response
+        res.json({
+            totalCount,
+            totalPages,
+            pageNumber,
+            pageSize,
+            data
+        });
     } catch (err) {
-      console.error(err);
-      res.status(500).send("Failed to fetch missions");
+        console.error(err);
+        res.status(500).send("Failed to fetch missions");
     }
-  });
+});
+
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
