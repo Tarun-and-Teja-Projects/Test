@@ -183,15 +183,18 @@ app.post('/api/login', async (req, res) => {
 });
 
 
-app.post('/api/data', authenticateToken, authorizePermission('write'), async (req, res) => {
+app.post('/api/data', async (req, res) => {
     try {
         const db = client.db("mydatabase");
         const collection = db.collection("Contact");
 
-        const { name, email, message } = req.body;
+        const { name, email } = req.body;
 
-        if (!name || !email || !message) {
-            return res.status(400).send("Missing required fields: name, email, and message");
+        if (!name || !email) {
+            return res.json({
+                status:500,
+                message:'Name and Email is Required'
+            })
         }
         const data = {
             name,
@@ -238,22 +241,17 @@ app.get('/api/getMission', async (req, res) => {
         const db = client.db("mydatabase");
         const collection = db.collection("mission");
 
-        // Get query parameters for pagination
-        const pageNumber = parseInt(req.query.pageNumber) || 1; // Default to 1 if not provided
-        const pageSize = parseInt(req.query.pageSize) || 5; // Default to 10 if not provided
+        const pageNumber = parseInt(req.query.pageNumber) || 1; 
+        const pageSize = parseInt(req.query.pageSize) || 5; 
 
-        // Calculate total count of documents
         const totalCount = await collection.countDocuments();
-        // Calculate total pages
         const totalPages = Math.ceil(totalCount / pageSize);
 
-        // Fetch the documents for the requested page
         const data = await collection.find({})
             .skip((pageNumber - 1) * pageSize)
             .limit(pageSize)
             .toArray();
 
-        // Return the paginated response
         res.json({
             totalCount,
             totalPages,
@@ -267,6 +265,34 @@ app.get('/api/getMission', async (req, res) => {
     }
 });
 
+app.get('/api/getContact', async (req, res) => {
+    try {
+        const db = client.db("mydatabase");
+        const collection = db.collection("Contact");
+
+        const pageNumber = parseInt(req.query.pageNumber) || 1; 
+        const pageSize = parseInt(req.query.pageSize) || 5; 
+
+        const totalCount = await collection.countDocuments();
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        const data = await collection.find({})
+            .skip((pageNumber - 1) * pageSize)
+            .limit(pageSize)
+            .toArray();
+
+        res.json({
+            totalCount,
+            totalPages,
+            pageNumber,
+            pageSize,
+            data
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Failed to fetch missions");
+    }
+});
 
 
 app.listen(PORT, () => {
